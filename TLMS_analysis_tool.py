@@ -146,10 +146,11 @@ def create_alarm_search_launch_window():
 def launch_alarm_search(alarm_search_launch_window):
     print("Alarm search launched")
     alarm_search_launch_window.destroy()
-    matched_results_path = sfl.process_fv_logs()
+    matched_results_path, matching_job_info_path = sfl.process_fv_logs()
 
-    #Copy the file to the 'logs' folder
+    #Copy the files to the 'logs' folder
     copy_file_to_logs(matched_results_path)
+    copy_file_to_logs(matching_job_info_path)
 
 # Copy the file to the 'logs' folder
 def copy_file_to_logs(file_path):
@@ -193,7 +194,7 @@ def main():
     root = tk.Tk()
     root.title("TLMS Analysis Tool")
 
-    # Create a buttons
+    # Create buttons
     btn_tlms_result_parse = tk.Button(root, text="Launch TLMS log parse", command=launch_tlms_log_parse) # Launch TLMS log parse button
     btn_fleet_view_alarm_search = tk.Button(root, text="Launch Fleet View Alarm Search", command=initialize_fv_alarm_search) # Launch Fleet View alarm search button
 
