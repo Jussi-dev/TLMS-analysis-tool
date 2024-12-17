@@ -146,7 +146,7 @@ def create_alarm_search_launch_window():
 def launch_alarm_search(alarm_search_launch_window):
     print("Alarm search launched")
     alarm_search_launch_window.destroy()
-    matched_results_path, matching_job_info_path = sfl.process_fv_logs()
+    matched_results_path, matching_job_info_path = sfl.process_fv_logs(fva_path)
 
     #Copy the files to the 'logs' folder
     copy_file_to_logs(matched_results_path)
