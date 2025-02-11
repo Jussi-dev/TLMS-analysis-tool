@@ -3,19 +3,25 @@ import sys
 import os
 import json
 
-mla_path = os.path.abspath(r'C:\Users\henttju\Python scripts\TLMS log analysis\TLMS MeasureResults')
-if mla_path not in sys.path:
-    sys.path.append(mla_path)
-    print("Path added: " + mla_path)
-import Measureresult_log_analysis as mla
+mla_path = os.path.abspath('C:/Users/henttju/Python scripts/TLMS log analysis/TLMS MeasureResults')
+if os.path.exists(mla_path):
+    if mla_path not in sys.path:
+        sys.path.append(mla_path)
+        print("Path added: " + mla_path)
+    import Measureresult_log_analysis as mla
+else:
+    print("Error: mla_path does not exist")
 
-fva_path = os.path.abspath(r'C:\Users\henttju\Python scripts\Search in FV logs')
-if fva_path not in sys.path:
-    sys.path.append(fva_path)
-    print("Path added: " + fva_path)
-import Search_FV_log as sfl
+fva_path = os.path.abspath('C:/Users/henttju/Python scripts/Search in FV logs')
+if os.path.exists(fva_path):
+    if fva_path not in sys.path:
+        sys.path.append(fva_path)
+        print("Path added: " + fva_path)
+    import Search_FV_log as sfl
+else:
+    print("Error: fva_path does not exist")
 
-def launch_tlms_log_parse():
+def start_tlms_log_analysis():
     print("TLMS log parse launched")
     file_path = mla.process_measurement_logs()
     print("File path: " + file_path)
@@ -27,7 +33,7 @@ def launch_tlms_log_parse():
 # Fleet View alarm search is initialized by editing the Config.json file
 # Editing the Config.json file involves selecting the ASC and the alarm to search for
 # with a GUI interface
-def initialize_fv_alarm_search():
+def setup_fv_alarm_search():
     # Import 'Config.json' file from Search_FV_log root
     config_path = os.path.join(fva_path, 'Config.json')
     # Read the 'Config.json' file as a json object
@@ -81,6 +87,8 @@ def create_alarm_selection_window(config, config_path, parsing_output_folder):
     # Create a listbox to display alarm names
     alarm_selection_window = tk.Toplevel()
     alarm_selection_window.title("Select Alarm")
+    # Set the size of the window
+    alarm_selection_window.geometry("640x300")
 
     # Create a listbox to display alarm names
     alarm_listbox = tk.Listbox(alarm_selection_window, selectmode=tk.SINGLE)
@@ -88,14 +96,14 @@ def create_alarm_selection_window(config, config_path, parsing_output_folder):
     # List alarms in the source alarm file
     source = config['program_setup']['settings']['source']
     source_alarm_file = os.path.join(parsing_output_folder, source + '_stats.txt')
-    source_alarm_list = sfl.list_alarm_names(source_alarm_file)
+    source_alarm_list = sfl.retrieve_alarm_list(source_alarm_file)
 
     # Set the width of the listbox based on the longest alarm name
-    max_alarm_length = max(len(alarm) for alarm in source_alarm_list)
+    max_alarm_length = max(len(alarm) for _, alarm in source_alarm_list)
     alarm_listbox.config(width=max_alarm_length + 5) # Add some padding
     
     # Populate the listbox with alarm names
-    for alarm in source_alarm_list:
+    for number_of_alarms, alarm in source_alarm_list:
         alarm_listbox.insert(tk.END, alarm)
 
     # Create a button to confirm selection
@@ -154,6 +162,9 @@ def launch_alarm_search(alarm_search_launch_window):
 
 # Copy the file to the 'logs' folder
 def copy_file_to_logs(file_path):
+    if file_path is None:
+        print("File path is None")
+        return # Return if the file path is None
     logs_folder = os.path.join(os.getcwd(), 'logs') # Get the 'logs' folder in the current working directory
     if not os.path.exists(logs_folder): # Check if the 'logs' folder exists
         os.makedirs(logs_folder) # Create the 'logs' folder if it doesn't exist
@@ -190,20 +201,28 @@ def copy_measure_result():
             os.replace(source_file, destination_file)
             print("File copied to: " + destination_file)
     
+class TLMSAnalysisTool(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("TLMS Analysis Tool")
+
+        # Create buttons
+        self.btn_tlms_result_parse = tk.Button(self, text="Launch TLMS log parse", command=self.launch_tlms_log_parse)
+        self.btn_fleet_view_alarm_search = tk.Button(self, text="Launch Fleet View Alarm Search", command=self.initialize_fv_alarm_search)
+
+        # Pack the buttons
+        self.btn_fleet_view_alarm_search.pack(pady=10)
+        self.btn_tlms_result_parse.pack(pady=10)
+
+    def launch_tlms_log_parse(self):
+        start_tlms_log_analysis()
+
+    def initialize_fv_alarm_search(self):
+        setup_fv_alarm_search()
+
 def main():
-    root = tk.Tk()
-    root.title("TLMS Analysis Tool")
-
-    # Create buttons
-    btn_tlms_result_parse = tk.Button(root, text="Launch TLMS log parse", command=launch_tlms_log_parse) # Launch TLMS log parse button
-    btn_fleet_view_alarm_search = tk.Button(root, text="Launch Fleet View Alarm Search", command=initialize_fv_alarm_search) # Launch Fleet View alarm search button
-
-    # Pack the buttons
-    btn_fleet_view_alarm_search.pack(pady=10)
-    btn_tlms_result_parse.pack(pady=10)
-
-    # Run the application
-    root.mainloop()
+    app = TLMSAnalysisTool()
+    app.mainloop()
 
 if __name__ == '__main__':
     main()
