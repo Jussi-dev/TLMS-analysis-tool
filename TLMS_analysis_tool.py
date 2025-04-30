@@ -52,10 +52,14 @@ def setup_fv_alarm_search():
 
     # ==================== Select ASC ====================
     asc_selection_window = tk.Toplevel()
-    asc_selection_window.title("Select ASC")
+    asc_selection_window.title("Select ASC") # Set the title of the window
+    asc_selection_window.geometry("240x240") # Set the size of the window
 
     # Create a listbox to display ASC names
     asc_listbox = tk.Listbox(asc_selection_window, selectmode=tk.SINGLE)
+
+    # Create a button to confirm selection
+    btn_select_asc = tk.Button(asc_selection_window, text="Select", command=lambda: on_asc_select(asc_listbox, asc_selection_window, config, config_path, parsing_output_folder))
 
     # List ASCs in the parsing-output folder
     source_asc_list = list_asc_names(parsing_output_folder)
@@ -63,10 +67,9 @@ def setup_fv_alarm_search():
     # Populate the listbox with ASC names
     for asc in source_asc_list:
         asc_listbox.insert(tk.END, asc)
+
+    # Pack the widgets
     asc_listbox.pack(pady=10)
-    
-    # Create a button to confirm selection
-    btn_select_asc = tk.Button(asc_selection_window, text="Select", command=lambda: on_asc_select(asc_listbox, asc_selection_window, config, config_path, parsing_output_folder))
     btn_select_asc.pack(pady=10)
     # ===================================================
 
@@ -88,30 +91,41 @@ def create_alarm_selection_window(config, config_path, parsing_output_folder):
     alarm_selection_window = tk.Toplevel()
     alarm_selection_window.title("Select Alarm")
     # Set the size of the window
-    alarm_selection_window.geometry("640x300")
+    alarm_selection_window.minsize(300, 300)
+
+    # Get the source alarm file
+    source = config['program_setup']['settings']['source']
+    source_alarm_file = os.path.join(parsing_output_folder, source + '_stats.txt')
+
+    # Create a check box to select all alarms or assistance requesting alarms
+    check_var_alarm_type_selection = tk.IntVar()
+    check_assistance_alarm_option = tk.Checkbutton(alarm_selection_window, text="Select alarms requesting assistance", variable=check_var_alarm_type_selection)
 
     # Create a listbox to display alarm names
     alarm_listbox = tk.Listbox(alarm_selection_window, selectmode=tk.SINGLE)
 
-    # List alarms in the source alarm file
-    source = config['program_setup']['settings']['source']
-    source_alarm_file = os.path.join(parsing_output_folder, source + '_stats.txt')
-    source_alarm_list = sfl.retrieve_alarm_list(source_alarm_file)
-
-    # Set the width of the listbox based on the longest alarm name
-    max_alarm_length = max(len(alarm) for _, alarm in source_alarm_list)
-    alarm_listbox.config(width=max_alarm_length + 5) # Add some padding
-    
-    # Populate the listbox with alarm names
-    for number_of_alarms, alarm in source_alarm_list:
-        alarm_listbox.insert(tk.END, alarm)
+    # Create a button to retrieve the selected alarms
+    btn_retrieve_alarms = tk.Button(alarm_selection_window, text="Retrieve Alarms", command=lambda: retrieve_and_display_alarms(source_alarm_file, alarm_listbox, check_var_alarm_type_selection.get()))
 
     # Create a button to confirm selection
     btn_select_alarm = tk.Button(alarm_selection_window, text="Select", command=lambda: on_alarm_select(alarm_listbox, alarm_selection_window, config, config_path))
     
+    check_assistance_alarm_option.pack(pady=10)
+    btn_retrieve_alarms.pack(pady=10)
     alarm_listbox.pack(pady=10)
     btn_select_alarm.pack(pady=10)
 
+def retrieve_and_display_alarms(source_alarm_file, alarm_listbox, alarm_type_selection):
+    source_alarm_list = sfl.retrieve_alarm_list(source_alarm_file, alarm_type_selection)
+    alarm_listbox.delete(0, tk.END)  # Clear the listbox
+
+    # Set the width of the listbox based on the longest alarm name
+    max_alarm_length = max(len(alarm) for _, alarm in source_alarm_list)
+    alarm_listbox.config(width=max_alarm_length + 5) # Add some padding
+
+    # Populate the listbox with alarm names
+    for number_of_alarms, alarm in source_alarm_list:
+        alarm_listbox.insert(tk.END, alarm)
 
 def on_alarm_select(alarm_listbox, alarm_selection_window, config, config_path):
     selected_alarm = alarm_listbox.get(tk.ACTIVE)
@@ -204,6 +218,7 @@ def copy_measure_result():
 class TLMSAnalysisTool(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.geometry("300x100")
         self.title("TLMS Analysis Tool")
 
         # Create buttons
