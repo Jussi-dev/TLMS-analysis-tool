@@ -3,14 +3,7 @@ import sys
 import os
 import json
 
-mla_path = os.path.abspath('C:/Users/henttju/Python scripts/TLMS log analysis/TLMS MeasureResults')
-if os.path.exists(mla_path):
-    if mla_path not in sys.path:
-        sys.path.append(mla_path)
-        print("Path added: " + mla_path)
-    import Measureresult_log_analysis as mla
-else:
-    print("Error: mla_path does not exist")
+import Measureresult_log_analysis as mla
 
 fva_path = os.path.abspath('C:/Users/henttju/Python scripts/Search in FV logs')
 if os.path.exists(fva_path):
