@@ -243,12 +243,7 @@ def collect_jobs(folder_path, output_file_location):
                     continue
 
         # Define TLMS success
-        if measure_results_data['Task_str'] != None:
-            if measure_results_data['Init_meas_status'] == 'InProgr':
-                if measure_results_data['Last_meas_status'] == 'Done':
-                    measure_results_data['TLMS_success'] = 1
-                elif measure_results_data['Last_meas_status'] == 'Failed':
-                    measure_results_data['TLMS_success'] = 0
+        determine_tlms_success(measure_results_data)
 
         # Record the end time
         end_time = time.time()
@@ -262,12 +257,21 @@ def collect_jobs(folder_path, output_file_location):
 
     return measure_results
 
+def determine_tlms_success(measure_results_data):
+    if measure_results_data['Task_str'] != None:
+        if measure_results_data['Init_meas_status'] == 'InProgr':
+            if measure_results_data['Last_meas_status'] == 'Done':
+                measure_results_data['TLMS_success'] = 1
+            elif measure_results_data['Last_meas_status'] == 'Failed':
+                measure_results_data['TLMS_success'] = 0
+
 def init_measure_results_data():
     measure_results_data = {
-        'filename' : None,
+        'filename' : "",
         'Timestamp' : None,
         'Date' : None,
         'Measurement_ID' : None,
+        'Job_id' : None,
         'Lane' : None,
         'Task_num' : None,
         'Task_str' : None,
@@ -316,7 +320,7 @@ def process_measurement_logs():
     log_folder_path = filedialog.askdirectory()
     output_file_location = "output/results"
     # parse_logs_to_csv(log_folder_path, output_file_location)
-    df = pd.DataFrame.from_dict(collect_jobs(log_folder_path, output_file_location))
+    df = pd.DataFrame(collect_jobs(log_folder_path, output_file_location))
 
     # Save the DataFrame to an Excel file
     # Create "Measureresult" folder if it doesn't exist
